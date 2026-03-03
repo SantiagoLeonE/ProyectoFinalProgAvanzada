@@ -1,0 +1,827 @@
+openapi: 3.0.3
+info:
+  title: API Sistema de Triage y Gestión de Solicitudes Académicas
+  version: 1.0.0
+  description: API REST para gestionar solicitudes académicas, como registro de asignaturas, homologaciones, solicitud de cupos, cancelación de asignaturas y consultas. Además permite priorizar estas solicitudes teniendo en cuenta reglas de negocio como el tipo de solicitud, impacto académico y fecha límite.
+
+servers:
+  - url: http://localhost:8080/api
+
+paths:
+
+  /solicitudes:
+    post:
+      summary: Registrar nueva solicitud
+      operationId: registrarSolicitud
+      tags: [ Solicitudes ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearSolicitudRequest'
+            example:
+              tipoSolicitud: REGISTRO_ASIGNATURA
+              canalOrigen: CSU
+              descripcion: "Necesito registrar la asignatura de Bases de Datos I, el sistema no me permite hacerlo."
+              usuarioId: "USR-001"
+      responses:
+        201:
+          description: Solicitud creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitudResponse'
+        400:
+          description: Datos inválidos
+        401:
+          description: Credenciales incorrectas. Acceso no autorizado
+
+    get:
+      summary: Consultar solicitudes con diferentes criterios
+      operationId: consultarSolicitudes
+      tags: [ Solicitudes ]
+      parameters:
+        - in: query
+          name: estado
+          schema:
+            $ref: '#/components/schemas/EstadoSolicitudEnum'
+        - in: query
+          name: tipo
+          schema:
+            $ref: '#/components/schemas/TipoSolicitudEnum'
+        - in: query
+          name: prioridad
+          schema:
+            $ref: '#/components/schemas/PrioridadEnum'
+        - in: query
+          name: responsableId
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: page
+          description: Número de página (empieza en 0)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: Cantidad de elementos por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - in: query
+          name: sort
+          description: Campo por el cual se ordena
+          schema:
+            type: string
+      responses:
+        200:
+          description: Lista de solicitudes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SolicitudResponse'
+                  page:
+                    type: integer
+                    example: 0
+                  size:
+                    type: integer
+                    example: 10
+                  totalElements:
+                    type: integer
+                    example: 125
+                  totalPages:
+                    type: integer
+                    example: 13
+                required:
+                  - content
+                  - page
+                  - size
+                  - totalElements
+                  - totalPages
+                
+        '401':
+          description: Credenciales incorrectas. Acceso no autorizado
+        '403':
+          description: Operación no autorizada para el rol
+
+  /solicitudes/{id}:
+    get:
+      summary: Obtener solicitud por Id
+      tags: [ Solicitudes ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Solicitud encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitudResponse'
+        404:
+          description: Solicitud no encontrada
+        401:
+          description: Credenciales incorrectas. Acceso no autorizado
+
+    patch:
+      summary: Actualizar datos de una solicitud
+      tags: [ Solicitudes ]
+      description: Permite actualizar la descripción, tipo o canal de origen de una solicitud, siempre y cuando no se encuentre en estado CERRADA.
+      operationId: actualizarSolicitud
+      parameters:
+        - name: id
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActualizarSolicitudRequest'
+      responses:
+        '200':
+          description: Solicitud actualizada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitudResponse'
+        '400':
+          description: Datos inválidos
+        '404':
+          description: Solicitud no encontrada
+        '409':
+          description: Conflicto — la solicitud está cerrada y no puede modificarse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /solicitudes/{id}/priorizar:
+    patch:
+      summary: Priorizar solicitud
+      tags: [ Solicitudes ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriorizarRequest'
+            example:
+              tipoSolicitud: HOMOLOGACION
+              impactoAcademico: "Afecta el plan de estudios del semestre en curso"
+              fechaLimite: "2026-04-20"
+      responses:
+        200:
+          description: Solicitud priorizada correctamente
+        404:
+          description: No existe la solicitud
+        '400':
+          description: Datos inválidos
+        '403':
+          description: Operación no autorizada para el rol
+        '409':
+          description: Priorización de estado no permitida — la solicitud no está en estado REGISTRADA
+
+  /solicitudes/{id}/asignar:
+    patch:
+      summary: Asignar responsable
+      tags: [ Solicitudes ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AsignarResponsableRequest'
+      responses:
+        200:
+          description: Responsable asignado correctamente
+        404:
+          description: No existe la solicitud
+        '400':
+          description: El responsable no existe, no está activo o la solicitud está cerrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Operación no autorizada para el rol
+
+  /solicitudes/{id}/modificarEstado:
+    patch:
+      summary: Cambiar estado de solicitud
+      tags: [ Solicitudes ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModificacionEstadoRequest'
+            example:
+              nuevoEstado: ATENDIDA
+              observacion: "Se procesó la homologación. Documentos validados y aprobados."
+      responses:
+        200:
+          description: Estado de solicitud actualizado correctamente
+        400:
+          description: Modificación inválida
+        404:
+          description: No existe la solicitud
+        403:
+          description: Operación no autorizada para el rol
+
+  /solicitudes/{id}/cerrar:
+    patch:
+      summary: Cerrar solicitud
+      tags: [ Solicitudes ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CerrarSolicitudRequest'
+            example:
+              observacionCierre: "Solicitud resuelta satisfactoriamente. Asignatura registrada en el sistema."
+      responses:
+        200:
+          description: Solicitud cerrada exitosamente
+        400:
+          description: No cumple condiciones de cierre
+        404:
+          description: No existe la solicitud
+        '403':
+          description: Operación no autorizada para el rol
+        '409':
+          description: La solicitud no está en estado ATENDIDA o ya fue cerrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /solicitudes/{id}/historial:
+    get:
+      summary: Obtener historial de una solicitud
+      tags: [ Historial ]
+      operationId: obtenerHistorialSolicitud
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Historial encontrado exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistorialResponse'
+        '404':
+          description: Solicitud no encontrada
+        '401':
+          description: Credenciales incorrectas. Acceso no autorizado
+
+  /usuarios:
+    get:
+      summary: Listar usuarios
+      tags: [ Usuarios ]
+      description: Retorna la lista de usuarios del sistema por rol y estado.
+      operationId: listarUsuarios
+      parameters:
+        - name: rol
+          in: query
+          schema:
+            $ref: '#/components/schemas/RolUsuarioEnum'
+        - name: activo
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista de usuarios obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsuarioResponse'
+        '403':
+          description: Operación no autorizada para el rol
+
+    post:
+      summary: Crear usuario
+      tags: [ Usuarios ]
+      description: Registra un nuevo usuario en el sistema.
+      operationId: crearUsuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearUsuarioRequest'
+            example:
+              nombre: "Santiago León"
+              email: "santiagoleon@uqvirtual.edu.co"
+              identificacion: "1096670477"
+              rol: ESTUDIANTE
+      responses:
+        '201':
+          description: Usuario creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioResponse'
+        '400':
+          description: Error de validacion
+        '403':
+          description: Operación no autorizada para el rol
+  
+  /usuarios/{id}:
+    get:
+      summary: Obtener usuario por ID
+      tags: [ Usuarios ]
+      operationId: obtenerUsuario
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Usuario encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioResponse'
+        '404':
+          description: Usuario no encontrado
+
+    put:
+      summary: Actualizar usuario
+      tags: [ Usuarios ]
+      description: Actualiza datos de un usuario existente.
+      operationId: actualizarUsuario
+      parameters:
+        - name: id
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActualizarUsuarioRequest'
+      responses:
+        '200':
+          description: Usuario actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioResponse'
+        '404':
+          description: Usuario No Encontrado
+        '403':
+          description: Operación no autorizada para el rol
+
+  /usuarios/{id}/desactivar:
+    patch:
+      summary: Desactivar usuario
+      tags: [ Usuarios ]
+      description: >
+        Desactiva un usuario con rol de responsable.
+        Un responsable inactivo no puede recibir nuevas solicitudes.
+      operationId: desactivarUsuario
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Usuario desactivado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioResponse'
+        '404':
+          description: Usuario no encontrado
+        '403':
+          description: Operación no autorizada para el rol
+
+  /ia/resumir/{id}:
+    get:
+      summary: Generar resumen de solicitud con IA
+      tags: [ Inteligencia Artificial ]
+      description: Genera un resumen textual del estado e historial de una solicitud usando un modelo de lenguaje externo.
+      operationId: resumirSolicitud
+      parameters:
+        - name: id
+          in: path
+      responses:
+        '200':
+          description: Resumen generado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResumenIAResponse'
+        '404':
+          description: Solicitud no encontrada
+        '503':
+          description: Servicio de IA no disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /ia/sugerir-clasificacion:
+    post:
+      summary: Sugerir clasificación y prioridad con IA
+      tags: [ Inteligencia Artificial ]
+      description: A partir del texto descriptivo de una solicitud sugiere el tipo y prioridad usando IA. Las sugerencias deben ser confirmadas o ajustadas por un humano antes de aplicarse al sistema (RF-10).
+      operationId: sugerirClasificacion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SugerirClasificacionRequest'
+            example:
+              descripcion: "El sistema no me deja cancelar la asignatura Cálculo Vectorial."
+      responses:
+        '200':
+          description: Sugerencia generada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SugerenciaClasificacionResponse'
+        '503':
+          description: Servicio de IA no disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+
+  schemas:
+
+    CrearSolicitudRequest:
+      type: object
+      required:
+        - tipoSolicitud
+        - canalOrigen
+        - descripcion
+        - usuarioId
+      properties:
+        tipoSolicitud:
+          $ref: '#/components/schemas/TipoSolicitudEnum'
+        canalOrigen:
+          $ref: '#/components/schemas/CanalOrigenEnum'
+        descripcion:
+          type: string
+        usuarioId:
+          type: integer
+          format: int64
+
+    ActualizarSolicitudRequest:
+      type: object
+      description: Solo se pueden modificar una solicitud mientras esta no esté CERRADA
+      properties:
+        descripcion:
+          type: string
+          minLength: 10
+          maxLength: 1000
+        tipo:
+          $ref: '#/components/schemas/TipoSolicitudEnum'
+        canalOrigen:
+          $ref: '#/components/schemas/CanalOrigenEnum'
+
+    PriorizarRequest:
+      type: object
+      required:
+        - tipoSolicitud
+        - impactoAcademico
+        - fechaLimite
+      properties:
+        tipoSolicitud:
+          $ref: '#/components/schemas/TipoSolicitudEnum'
+        impactoAcademico:
+          type: string
+        fechaLimite:
+          type: string
+          format: date
+
+    AsignarResponsableRequest:
+      type: object
+      required:
+        - responsableId
+      properties:
+        responsableId:
+          type: integer
+          format: int64
+
+    ModificacionEstadoRequest:
+      type: object
+      required:
+        - nuevoEstado
+      properties:
+        nuevoEstado:
+          $ref: '#/components/schemas/EstadoSolicitudEnum'
+        observacion:
+          type: string
+
+    CerrarSolicitudRequest:
+      type: object
+      required:
+        - observacionCierre
+      properties:
+        observacionCierre:
+          type: string
+
+    CrearUsuarioRequest:
+      type: object
+      required:
+        - nombre
+        - email
+        - identificacion
+        - rol
+      properties:
+        nombre:
+          type: string
+          maxLength: 200
+          example: "Laura Gómez"
+        email:
+          type: string
+          format: email
+          example: "lgomez@universidad.edu.co"
+        identificacion:
+          type: string
+          maxLength: 20
+          example: "1023456789"
+        rol:
+          $ref: '#/components/schemas/RolUsuarioEnum'
+
+    ActualizarUsuarioRequest:
+      type: object
+      properties:
+        nombre:
+          type: string
+          maxLength: 200
+        email:
+          type: string
+          format: email
+        identificacion:
+          type: string
+          maxLength: 20
+        activo:
+          type: boolean
+        rol:
+          $ref: '#/components/schemas/RolUsuarioEnum'
+      
+    SugerirClasificacionRequest:
+      type: object
+      required:
+        - descripcion
+      properties:
+        descripcion:
+          type: string
+          minLength: 10
+          maxLength: 2000
+          description: Texto descriptivo de la solicitud a analizar
+          example: "No puedo cancelar Cálculo Vectorial."
+    
+    UsuarioResponse:
+      type: object
+      required:
+        - id
+        - nombre
+        - email
+        - identificacion
+        - activo
+        - rol
+      properties:
+        id:
+          type: integer
+          format: int64
+        nombre:
+          type: string
+        email:
+          type: string
+        identificacion:
+          type: string
+        activo:
+          type: boolean
+        rol:
+          $ref: '#/components/schemas/RolUsuarioEnum'
+
+    SolicitudResponse:
+      type: object
+      required:
+        - id
+        - descripcion
+        - fechaHoraRegistro
+        - estado
+        - tipoSolicitud
+        - prioridad
+        - canalOrigen
+        - solicitanteId
+      properties:
+        id:
+          type: string
+          example: "SOL-2024-001"
+        descripcion:
+          type: string
+          example: "Necesito registrar la asignatura Bases de Datos II."
+        fechaHoraRegistro:
+          type: string
+          format: date-time
+          example: "2024-08-15T10:30:00"
+        estado:
+          $ref: '#/components/schemas/EstadoSolicitudEnum'
+        tipo:
+          $ref: '#/components/schemas/TipoSolicitudEnum'
+        prioridad:
+          $ref: '#/components/schemas/PrioridadEnum'
+        canal:
+          $ref: '#/components/schemas/CanalOrigenEnum'
+        solicitanteId:
+          type: integer
+          format: int64
+        responsableId:
+          type: integer
+          format: int64
+
+    HistorialResponse:
+      type: object
+      required:
+        - id
+        - fechaHoraAccion
+        - accionRealizada
+        - usuarioResponsableId
+        - observacionesAsociadas
+      properties:
+        id:
+          type: string
+        fechaHoraAccion:
+          type: string
+          format: date-time
+        accionRealizada:
+          type: string
+        usuarioResponsableId:
+          type: integer
+          format: int64
+        observacionesAsociadas:
+          type: string
+
+    ResumenIAResponse:
+      type: object
+      description: Resumen generado por modelo de lenguaje externo IA
+      properties:
+        solicitudId:
+          type: string
+          example: "SOL-2024-001"
+        resumen:
+          type: string
+          description: Resumen textual generado por el modelo de lenguaje
+          example: La solicitud de homologación fue registrada el 15 de agosto con prioridad ALTA. Actualmente está siendo atendida por Jhoan León. Se han registrado 3 acciones en el historial, registro, clasificación y asignación de responsable.
+        generadoEn:
+          type: string
+          format: date-time
+          example: "2024-08-16T10:00:00"
+    
+    SugerenciaClasificacionResponse:
+      type: object
+      description: Sugerencia de clasificación generada por IA. Siempre requiere confirmación o ajuste humano antes de aplicarse al sistema.
+      properties:
+        tipoSugerido:
+          $ref: '#/components/schemas/TipoSolicitudEnum'
+        prioridadSugerida:
+          $ref: '#/components/schemas/PrioridadEnum'
+        justificacion:
+          type: string
+          description: Justificación del modelo para la sugerencia
+          example: El texto indica una cancelación de asignatura fuera de fecha con causa de fuerza mayor documentada, lo que implica alta prioridad.
+        confianza:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Nivel de confianza del modelo (0.0 = mínimo, 1.0 = máximo)
+          example: 0.87
+        requiereConfirmacion:
+          type: boolean
+          description: Siempre true — las sugerencias de IA deben ser confirmadas por un humano
+          example: true
+
+    ErrorResponse:
+      type: object
+      required:
+        - codigo
+        - mensaje
+        - timestamp
+      properties:
+        codigo:
+          type: string
+          example: "SOLICITUD_CERRADA"
+        mensaje:
+          type: string
+          example: "La solicitud SOL-2024-001 ya está cerrada y no puede ser modificada."
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-08-16T10:05:00"
+
+    EstadoSolicitudEnum:
+      type: string
+      description: Estados que puedo tener una solicitud en su ciclo de vida
+      enum:
+        - REGISTRADA
+        - CLASIFICADA
+        - EN_ATENCION
+        - ATENDIDA
+        - CERRADA
+
+    PrioridadEnum:
+      type: string
+      description: Niveles de prioridad que puede tomar una solicitud
+      enum:
+        - BAJA
+        - MEDIA
+        - ALTA
+
+    RolUsuarioEnum:
+      type: string
+      description: Diferente roles que hacen parte del sistema
+      enum:
+        - ESTUDIANTE
+        - DOCENTE
+        - ADMINISTRATIVO
+        - RESPONSABLE
+
+    TipoSolicitudEnum:
+      type: string
+      description: Tipos de solicitud permitidos 
+      enum:
+        - REGISTRO_ASIGNATURAS
+        - HOMOLOGACION
+        - CANCELACION_ASIGNATURAS
+        - SOLICITUD_CUPOS
+        - CONSULTA_ACADEMICA
+
+    CanalOrigenEnum:
+      type: string
+      description: Medios por los cuales se puede realizar una solicitud
+      enum:
+        - PRESENCIAL
+        - CSU
+        - CORREO
+        - SAC
+        - TELEFONICO
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: [ ]
