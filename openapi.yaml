@@ -244,7 +244,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ModificacionEstadoRequest'
+              $ref: '#/components/schemas/ModificarEstadoRequest'
             example:
               nuevoEstado: ATENDIDA
               observacion: "Se procesó la homologación. Documentos validados y aprobados."
@@ -492,7 +492,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SugerenciaClasificacionResponse'
+                $ref: '#/components/schemas/SugerirClasificacionResponse'
         '503':
           description: Servicio de IA no disponible
           content:
@@ -559,7 +559,7 @@ components:
           type: integer
           format: int64
 
-    ModificacionEstadoRequest:
+    ModificarEstadoRequest:
       type: object
       required:
         - nuevoEstado
@@ -728,7 +728,7 @@ components:
           format: date-time
           example: "2024-08-16T10:00:00"
     
-    SugerenciaClasificacionResponse:
+    SugerirClasificacionResponse:
       type: object
       description: Sugerencia de clasificación generada por IA. Siempre requiere confirmación o ajuste humano antes de aplicarse al sistema.
       properties:
