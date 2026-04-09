@@ -1,4 +1,8 @@
 package co.edu.uniquindio.gestionacademica.repository;
 
-public interface HistorialSolicitudRepository {
+import co.edu.uniquindio.gestionacademica.domain.model.HistorialSolicitud;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface HistorialSolicitudRepository extends JpaRepository<HistorialSolicitud,Long> {
+
 }
