@@ -1,4 +1,4 @@
 package co.edu.uniquindio.gestionacademica.security;
 
-public class UserDetailsServiceImpl {
+public class UserDetailsService {
 }
