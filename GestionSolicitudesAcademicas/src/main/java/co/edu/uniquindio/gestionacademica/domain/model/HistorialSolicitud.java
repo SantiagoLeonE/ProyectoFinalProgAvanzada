@@ -1,5 +1,7 @@
 package co.edu.uniquindio.gestionacademica.domain.model;
 
+import co.edu.uniquindio.gestionacademica.domain.model.Solicitud;
+import co.edu.uniquindio.gestionacademica.domain.model.Usuario;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,11 +26,11 @@ public class HistorialSolicitud {
     @Column(nullable = false, length = 500)
     private String accionRealizada;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "solicitud_id", nullable = false)
     private Solicitud solicitud;
 
-    @ManyToOne
-    @JoinColumn(name = "responsable_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "responsable_id", nullable = true)
     private Usuario responsable;
 }

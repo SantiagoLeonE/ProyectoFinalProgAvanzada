@@ -9,6 +9,7 @@ import co.edu.uniquindio.gestionacademica.dto.response.SolicitudResponseDTO;
 import co.edu.uniquindio.gestionacademica.mapper.SolicitudMapper;
 import co.edu.uniquindio.gestionacademica.repository.SolicitudRepository;
 import co.edu.uniquindio.gestionacademica.repository.UsuarioRepository;
+import co.edu.uniquindio.gestionacademica.service.HistorialSolicitudService;
 import co.edu.uniquindio.gestionacademica.service.SolicitudService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class SolicitudServiceImpl implements SolicitudService {
     private final SolicitudRepository solicitudRepository;
     private final UsuarioRepository usuarioRepository;
     private final SolicitudMapper solicitudMapper;
+    private final HistorialSolicitudService historialSolicitudService;
 
     @Override
     @Transactional
@@ -46,6 +48,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .build();
 
         Solicitud solicitudGuardada = solicitudRepository.save(solicitud);
+        historialSolicitudService.registrarHistorial(solicitudGuardada, "Solicitud Registrada", null);
         return solicitudMapper.toDto(solicitudGuardada);
     }
 
@@ -105,6 +108,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitud.setEstadoSolicitud(EstadoSolicitud.CLASIFICADA);
 
         Solicitud solicitudActualizada = solicitudRepository.save(solicitud);
+        historialSolicitudService.registrarHistorial(solicitudActualizada, "Solicitud Clasificada", solicitudActualizada.getResponsable());
         return solicitudMapper.toDto(solicitudActualizada);
     }
 
@@ -133,6 +137,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitud.setResponsable(responsable);
 
         Solicitud solicitudActualizada = solicitudRepository.save(solicitud);
+        historialSolicitudService.registrarHistorial(solicitudActualizada, "Responsable Asignado", responsable);
         return solicitudMapper.toDto(solicitudActualizada);
     }
 
@@ -158,6 +163,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitud.setEstadoSolicitud(EstadoSolicitud.EN_ATENCION);
 
         Solicitud solicitudActualizada = solicitudRepository.save(solicitud);
+        historialSolicitudService.registrarHistorial(solicitudActualizada, "Solicitud en Atención", solicitudActualizada.getResponsable());
         return solicitudMapper.toDto(solicitudActualizada);
     }
 
@@ -178,6 +184,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitud.setEstadoSolicitud(EstadoSolicitud.ATENDIDA);
 
         Solicitud solicitudActualizada = solicitudRepository.save(solicitud);
+        historialSolicitudService.registrarHistorial(solicitudActualizada, "Solicitud Atendida", solicitudActualizada.getResponsable());
         return solicitudMapper.toDto(solicitudActualizada);
     }
 
@@ -199,6 +206,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitud.setObservacionCierre(request.getObservacionCierre());
 
         Solicitud solicitudActualizada = solicitudRepository.save(solicitud);
+        historialSolicitudService.registrarHistorial(solicitudActualizada, "Solicitud Cerrada", solicitudActualizada.getResponsable());
         return solicitudMapper.toDto(solicitudActualizada);
     }
 
