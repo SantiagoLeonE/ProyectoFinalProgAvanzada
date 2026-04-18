@@ -6,6 +6,9 @@ import co.edu.uniquindio.gestionacademica.domain.model.Usuario;
 import co.edu.uniquindio.gestionacademica.dto.*;
 import co.edu.uniquindio.gestionacademica.dto.request.SolicitudRequestDTO;
 import co.edu.uniquindio.gestionacademica.dto.response.SolicitudResponseDTO;
+import co.edu.uniquindio.gestionacademica.exception.DatosInvalidosException;
+import co.edu.uniquindio.gestionacademica.exception.EstadoInvalidoException;
+import co.edu.uniquindio.gestionacademica.exception.RecursoNoEncontradoException;
 import co.edu.uniquindio.gestionacademica.mapper.SolicitudMapper;
 import co.edu.uniquindio.gestionacademica.repository.SolicitudRepository;
 import co.edu.uniquindio.gestionacademica.repository.UsuarioRepository;
@@ -34,7 +37,15 @@ public class SolicitudServiceImpl implements SolicitudService {
     public SolicitudResponseDTO crearSolicitud(SolicitudRequestDTO request) {
 
         Usuario solicitante = usuarioRepository.findById(request.getSolicitanteId())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("El usuario con id " + request.getSolicitanteId() + " no encontrado"));
+
+        if(solicitante.getRol() != Rol.ESTUDIANTE) {
+            throw new DatosInvalidosException("Solo un ESTUDIANTE puede realizar solicitudes");
+        }
+
+        if(!solicitante.isActivo()) {
+            throw new DatosInvalidosException("El solicitante con id " + request.getSolicitanteId() + " no está activo y no puede realizar solicitudes");
+        }
 
         Solicitud solicitud = Solicitud.builder()
                 .descripcion(request.getDescripcion())
@@ -84,7 +95,7 @@ public class SolicitudServiceImpl implements SolicitudService {
     public SolicitudResponseDTO obtenerSolicitudPorId(Long id) {
 
         Solicitud solicitud = solicitudRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Solicitud con id " + id + " no encontrada"));
 
         return solicitudMapper.toDto(solicitud);
     }
@@ -94,14 +105,14 @@ public class SolicitudServiceImpl implements SolicitudService {
     public SolicitudResponseDTO clasificarSolicitud(Long id,  ClasificarSolicitudDTO request) {
 
         Solicitud solicitud = solicitudRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Solicitud con id " + id + " no encontrada"));
 
         if(solicitud.getEstadoSolicitud() == EstadoSolicitud.CERRADA) {
-            throw new RuntimeException("No se puede modificar una solicitud cerrada");
+            throw new EstadoInvalidoException("No se puede modificar la solicitud con id " + id + " porque está cerrada");
         }
 
         if(solicitud.getEstadoSolicitud() != EstadoSolicitud.REGISTRADA) {
-            throw new RuntimeException("La solicitud no puede pasar al estado CLASIFICADA");
+            throw new EstadoInvalidoException("La solicitud con id " + id + " no puede pasar al estado CLASIFICADA");
         }
 
         solicitud.setTipoSolicitud(request.getTipoSolicitud());
@@ -117,21 +128,21 @@ public class SolicitudServiceImpl implements SolicitudService {
     public SolicitudResponseDTO asignarResponsable(Long id, AsignarResponsableDTO request) {
 
         Solicitud solicitud = solicitudRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Solicitud con id " + id + " no encontrada"));
 
         if(solicitud.getEstadoSolicitud() == EstadoSolicitud.CERRADA) {
-            throw new RuntimeException("No se puede modificar una solicitud cerrada");
+            throw new EstadoInvalidoException("No se puede modificar la solicitud con id " + id + " porque está cerrada");
         }
 
         Usuario responsable = usuarioRepository.findById(request.getResponsableId())
-                .orElseThrow(() -> new RuntimeException("Responsable no encontrado"));
+                .orElseThrow(() -> new DatosInvalidosException("Responsable con id " + request.getResponsableId() + " no encontrado"));
 
         if(responsable.getRol() != Rol.DOCENTE && responsable.getRol() != Rol.ADMINISTRATIVO) {
-            throw new RuntimeException("Solo un DOCENTE o un ADMINISTRATIVO puede ser asignado como responsable");
+            throw new DatosInvalidosException("Solo un DOCENTE o un ADMINISTRATIVO puede ser asignado como responsable");
         }
 
         if(!responsable.isActivo()) {
-            throw new RuntimeException("El responsable no está activo y no puede recibir solicitudes");
+            throw new DatosInvalidosException("El responsable con id " + responsable.getId() + " no está activo y no puede recibir solicitudes");
         }
 
         solicitud.setResponsable(responsable);
@@ -146,18 +157,18 @@ public class SolicitudServiceImpl implements SolicitudService {
     public SolicitudResponseDTO atenderSolicitud(Long id) {
 
         Solicitud solicitud = solicitudRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Solicitud con id " + id + " no encontrada"));
 
         if(solicitud.getEstadoSolicitud() == EstadoSolicitud.CERRADA) {
-            throw new RuntimeException("No se puede modificar una solicitud cerrada");
+            throw new EstadoInvalidoException("No se puede modificar la solicitud con id " + id + " porque está cerrada");
         }
 
         if(solicitud.getEstadoSolicitud() != EstadoSolicitud.CLASIFICADA) {
-            throw new RuntimeException("La solicitud no puede pasar al estado EN_ATENCIÓN");
+            throw new EstadoInvalidoException("La solicitud con id " + id + " no puede pasar al estado EN_ATENCIÓN");
         }
 
         if(solicitud.getResponsable() == null) {
-            throw new RuntimeException("No se puede atender una solicitud sin un responsable asignado");
+            throw new DatosInvalidosException("No se puede atender una solicitud sin un responsable asignado");
         }
 
         solicitud.setEstadoSolicitud(EstadoSolicitud.EN_ATENCION);
@@ -171,14 +182,14 @@ public class SolicitudServiceImpl implements SolicitudService {
     public SolicitudResponseDTO resolverSolicitud(Long id) {
 
         Solicitud solicitud = solicitudRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Solicitud con id " + id + " no encontrada"));
 
         if(solicitud.getEstadoSolicitud() == EstadoSolicitud.CERRADA) {
-            throw new RuntimeException("No se puede modificar una solicitud cerrada");
+            throw new EstadoInvalidoException("No se puede modificar la solicitud con id " + id + " porque está cerrada");
         }
 
         if(solicitud.getEstadoSolicitud() != EstadoSolicitud.EN_ATENCION) {
-            throw new RuntimeException("La solicitud no puede pasar al estado ATENDIDA");
+            throw new EstadoInvalidoException("La solicitud con id " + id + " no puede pasar al estado ATENDIDA");
         }
 
         solicitud.setEstadoSolicitud(EstadoSolicitud.ATENDIDA);
@@ -192,14 +203,14 @@ public class SolicitudServiceImpl implements SolicitudService {
     public SolicitudResponseDTO cerrarSolicitud(Long id, CerrarSolicitudDTO request) {
 
         Solicitud solicitud = solicitudRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Solicitud con id " + id + " no encontrada"));
 
         if(solicitud.getEstadoSolicitud() == EstadoSolicitud.CERRADA) {
-            throw new RuntimeException("No se puede modificar una solicitud cerrada");
+            throw new EstadoInvalidoException("No se puede modificar la solicitud con id " + id + " porque está cerrada");
         }
 
         if(solicitud.getEstadoSolicitud() != EstadoSolicitud.ATENDIDA) {
-            throw new RuntimeException("La solicitud no puede pasar al estado CERRADA");
+            throw new EstadoInvalidoException("La solicitud con id " + id + " no puede pasar al estado CERRADA");
         }
 
         solicitud.setEstadoSolicitud(EstadoSolicitud.CERRADA);

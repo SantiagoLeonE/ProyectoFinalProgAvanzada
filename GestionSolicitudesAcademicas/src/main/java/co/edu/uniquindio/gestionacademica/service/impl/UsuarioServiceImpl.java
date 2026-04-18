@@ -4,6 +4,8 @@ import co.edu.uniquindio.gestionacademica.domain.enums.Rol;
 import co.edu.uniquindio.gestionacademica.domain.model.Usuario;
 import co.edu.uniquindio.gestionacademica.dto.request.UsuarioRequestDTO;
 import co.edu.uniquindio.gestionacademica.dto.response.UsuarioResponseDTO;
+import co.edu.uniquindio.gestionacademica.exception.DatosInvalidosException;
+import co.edu.uniquindio.gestionacademica.exception.RecursoNoEncontradoException;
 import co.edu.uniquindio.gestionacademica.mapper.UsuarioMapper;
 import co.edu.uniquindio.gestionacademica.repository.UsuarioRepository;
 import co.edu.uniquindio.gestionacademica.service.UsuarioService;
@@ -56,7 +58,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioResponseDTO obtenerUsuarioPorId(Long id) {
 
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario con id " + id + " no encontrado"));
 
         return usuarioMapper.toDTO(usuario);
     }
@@ -65,7 +67,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioResponseDTO actualizarUsuario(Long id, UsuarioRequestDTO request) {
 
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario con id " + id + " no encontrado"));
 
         usuario.setNombre(request.getNombre());
         usuario.setEmail(request.getEmail());
@@ -82,16 +84,14 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioResponseDTO desactivarUsuario(Long id) {
 
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario con id " + id + " no encontrado"));
 
         if(!usuario.isActivo()) {
-            throw new RuntimeException("El usuario ya se encuentra desactivado");
+            throw new DatosInvalidosException("El usuario con id " + id + " ya se encuentra desactivado");
         }
 
         usuario.setActivo(false);
-
         Usuario usuarioActualizado =  usuarioRepository.save(usuario);
-
         return usuarioMapper.toDTO(usuarioActualizado);
     }
 }

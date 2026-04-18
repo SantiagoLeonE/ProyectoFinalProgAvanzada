@@ -4,6 +4,7 @@ import co.edu.uniquindio.gestionacademica.domain.model.HistorialSolicitud;
 import co.edu.uniquindio.gestionacademica.domain.model.Solicitud;
 import co.edu.uniquindio.gestionacademica.domain.model.Usuario;
 import co.edu.uniquindio.gestionacademica.dto.response.HistorialSolicitudResponseDTO;
+import co.edu.uniquindio.gestionacademica.exception.RecursoNoEncontradoException;
 import co.edu.uniquindio.gestionacademica.mapper.HistorialSolicitudMapper;
 import co.edu.uniquindio.gestionacademica.repository.HistorialSolicitudRepository;
 import co.edu.uniquindio.gestionacademica.repository.SolicitudRepository;
@@ -25,7 +26,7 @@ public class HistorialSolicitudServiceImpl implements HistorialSolicitudService 
     @Override
     public List<HistorialSolicitudResponseDTO> obtenerHistorialPorSolicitud(Long solicitudId) {
         solicitudRepository.findById(solicitudId)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Solicitud con id " + solicitudId + " no encontrada"));
 
         return historialSolicitudRepository.findBySolicitudIdOrderByFechaAccionAsc(solicitudId)
                 .stream()
@@ -36,7 +37,6 @@ public class HistorialSolicitudServiceImpl implements HistorialSolicitudService 
 
     /*
      *Método para integrar historial con solicitud
-     *
      */
     @Override
     public void registrarHistorial(Solicitud solicitud, String accionRealizada, Usuario responsable) {
