@@ -13,7 +13,7 @@ public class SolicitudMapper {
                 .id(solicitud.getId())
                 .descripcion(solicitud.getDescripcion())
                 .fechaRegistro(solicitud.getFechaRegistro())
-                .justificacionPrioridad(solicitud.getJustificacion())
+                .justificacionPrioridad(solicitud.getJustificacionPrioridad())
                 .observacionCierre(solicitud.getObservacionCierre())
                 .tipoSolicitud(solicitud.getTipoSolicitud())
                 .estadoSolicitud(solicitud.getEstadoSolicitud())

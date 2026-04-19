@@ -29,7 +29,7 @@ public class Solicitud {
     private LocalDateTime fechaRegistro;
 
     @Column(nullable = false, length = 1000)
-    private String justificacion;
+    private String justificacionPrioridad;
 
     @Column(length = 1000)
     private String observacionCierre;

@@ -51,7 +51,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .descripcion(request.getDescripcion())
                 .tipoSolicitud(request.getTipoSolicitud())
                 .prioridad(request.getPrioridad())
-                .justificacion(request.getJustificacionPrioridad())
+                .justificacionPrioridad(request.getJustificacionPrioridad())
                 .canalOrigen(request.getCanalOrigen())
                 .estadoSolicitud(EstadoSolicitud.REGISTRADA)
                 .fechaRegistro(LocalDateTime.now())

@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/solicitudes")
@@ -20,7 +20,7 @@ public class SolicitudController {
     private final SolicitudService solicitudService;
 
     @PostMapping
-    public ResponseEntity<SolicitudResponseDTO> crearSolicitud(@RequestBody SolicitudRequestDTO request) {
+    public ResponseEntity<SolicitudResponseDTO> crearSolicitud(@Valid @RequestBody SolicitudRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(solicitudService.crearSolicitud(request));
     }
 
@@ -44,12 +44,12 @@ public class SolicitudController {
     }
 
     @PatchMapping("/{id}/clasificar")
-    public ResponseEntity<SolicitudResponseDTO> clasificarSolicitud(@PathVariable Long id,  @RequestBody ClasificarSolicitudDTO request) {
+    public ResponseEntity<SolicitudResponseDTO> clasificarSolicitud(@PathVariable Long id, @Valid @RequestBody ClasificarSolicitudDTO request) {
         return ResponseEntity.ok(solicitudService.clasificarSolicitud(id, request));
     }
 
     @PatchMapping("/{id}/asignar")
-    public ResponseEntity<SolicitudResponseDTO> asignarResponsable(@PathVariable Long id,  @RequestBody AsignarResponsableDTO request) {
+    public ResponseEntity<SolicitudResponseDTO> asignarResponsable(@PathVariable Long id, @Valid @RequestBody AsignarResponsableDTO request) {
         return ResponseEntity.ok(solicitudService.asignarResponsable(id, request));
     }
 
@@ -64,7 +64,7 @@ public class SolicitudController {
     }
 
     @PatchMapping("/{id}/cerrar")
-    public ResponseEntity<SolicitudResponseDTO> cerrarSolicitud(@PathVariable Long id, @RequestBody CerrarSolicitudDTO request) {
+    public ResponseEntity<SolicitudResponseDTO> cerrarSolicitud(@PathVariable Long id, @Valid @RequestBody CerrarSolicitudDTO request) {
         return ResponseEntity.ok(solicitudService.cerrarSolicitud(id, request));
     }
 }

@@ -3,10 +3,12 @@ package co.edu.uniquindio.gestionacademica.exception;
 import co.edu.uniquindio.gestionacademica.dto.response.ErrorResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -51,6 +53,25 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponseDTO.builder()
                         .codigo("Error interno")
                         .mensaje("Ocurrió un error inesperado en el servidor")
+                        .timestamp(LocalDateTime.now())
+                        .build());
+    }
+
+    //Está excepción captura cuando los datos enviados no pasan las validaciones creadas en los DTO. Retorna HTTP 400 BAD REQUEST
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponseDTO> handleValidacion(MethodArgumentNotValidException ex) {
+
+        //Agrupa todos los errores de validación en un solo mensaje
+        String mensaje = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponseDTO.builder()
+                        .codigo("Validación fallida")
+                        .mensaje(mensaje)
                         .timestamp(LocalDateTime.now())
                         .build());
     }
