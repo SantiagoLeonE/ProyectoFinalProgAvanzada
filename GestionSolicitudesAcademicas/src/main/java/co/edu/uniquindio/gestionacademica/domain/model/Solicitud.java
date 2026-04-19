@@ -43,7 +43,7 @@ public class Solicitud {
     private EstadoSolicitud estadoSolicitud;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column
     private Prioridad prioridad;
 
     @Enumerated(EnumType.STRING)

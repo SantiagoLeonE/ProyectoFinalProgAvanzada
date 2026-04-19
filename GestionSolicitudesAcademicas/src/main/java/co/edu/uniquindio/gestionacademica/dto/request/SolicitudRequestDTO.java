@@ -1,9 +1,9 @@
 package co.edu.uniquindio.gestionacademica.dto.request;
 
 import co.edu.uniquindio.gestionacademica.domain.enums.CanalOrigen;
-import co.edu.uniquindio.gestionacademica.domain.enums.Prioridad;
 import co.edu.uniquindio.gestionacademica.domain.enums.TipoSolicitud;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import lombok.*;
@@ -21,16 +21,12 @@ public class SolicitudRequestDTO {
     private String descripcion;
 
     //El tipo es obligatorio para saber qué clase de solicitud se desea realizar
-    @NotBlank(message = "El tipo de la solicitud es obligatorio")
+    @NotNull(message = "El tipo de la solicitud es obligatorio")
     private TipoSolicitud tipoSolicitud;
 
     //La justificación es obligatoria porque es el porqué se debe atender la solicitud de manera más priorizada o no
     @NotBlank(message = "La justificación es obligatoria")
     private String justificacionPrioridad;
-
-    //Es obligatorio para saber qué prioridad va a tener la solicitud
-    @NotBlank(message = "La prioridad es obligatorio")
-    private Prioridad prioridad;
 
     //El canal es obligatorio para saber por dónde se realiza la solicitud
     @NotBlank(message = "El canal de origen es obligatorio")

@@ -70,7 +70,6 @@ class GestionAcademicaApplicationTests {
                 .descripcion("Registrar la asignatura de Bases de Datos")
                 .tipoSolicitud(TipoSolicitud.REGISTRO_ASIGNATURA)
                 .justificacionPrioridad("Necesito realizar el registro lo más pronto posible para continuar con mis estudios")
-                .prioridad(Prioridad.ALTA)
                 .canalOrigen(CanalOrigen.CSU)
                 .solicitanteId(solicitante.getId())
                 .build();
@@ -81,7 +80,7 @@ class GestionAcademicaApplicationTests {
         assertEquals("Necesito realizar el registro lo más pronto posible para continuar con mis estudios",  response.getJustificacionPrioridad());
         assertEquals(TipoSolicitud.REGISTRO_ASIGNATURA, response.getTipoSolicitud());
         assertEquals(EstadoSolicitud.REGISTRADA, response.getEstadoSolicitud());
-        assertEquals(Prioridad.ALTA, response.getPrioridad());
+        assertNull(response.getPrioridad());
         assertEquals(CanalOrigen.CSU, response.getCanalOrigen());
         assertEquals(solicitante.getId(), response.getSolicitanteId());
     }
@@ -95,7 +94,6 @@ class GestionAcademicaApplicationTests {
                 .descripcion("Registrar la asignatura de Bases de Datos")
                 .tipoSolicitud(TipoSolicitud.REGISTRO_ASIGNATURA)
                 .justificacionPrioridad("Necesito realizar el registro lo más pronto posible para continuar con mis estudios")
-                .prioridad(Prioridad.ALTA)
                 .canalOrigen(CanalOrigen.CSU)
                 .solicitanteId(solicitante.getId())
                 .build();
@@ -117,7 +115,6 @@ class GestionAcademicaApplicationTests {
                 .descripcion("Registrar la asignatura de Bases de Datos")
                 .tipoSolicitud(TipoSolicitud.REGISTRO_ASIGNATURA)
                 .justificacionPrioridad("Necesito realizar el registro lo más pronto posible para continuar con mis estudios")
-                .prioridad(Prioridad.ALTA)
                 .canalOrigen(CanalOrigen.CSU)
                 .solicitanteId(solicitante.getId())
                 .build();
@@ -143,7 +140,6 @@ class GestionAcademicaApplicationTests {
                 .descripcion("Registrar la asignatura de Bases de Datos")
                 .tipoSolicitud(TipoSolicitud.REGISTRO_ASIGNATURA)
                 .justificacionPrioridad("Necesito realizar el registro lo más pronto posible para continuar con mis estudios")
-                .prioridad(Prioridad.ALTA)
                 .canalOrigen(CanalOrigen.CSU)
                 .solicitanteId(solicitante.getId())
                 .build();
@@ -153,5 +149,31 @@ class GestionAcademicaApplicationTests {
         List<HistorialSolicitudResponseDTO> historial = historialSolicitudService.obtenerHistorialPorSolicitud(response.getId());
 
         assertFalse(historial.isEmpty());
+    }
+
+    /*
+     * Prueba para comprobar el funcionamiento correcto de la asignación de la prioridad por el tipo
+     */
+    @Test
+    void clasificarSolicitud() {
+        SolicitudRequestDTO request = SolicitudRequestDTO.builder()
+                .descripcion("Prueba válida de longitud")
+                .tipoSolicitud(TipoSolicitud.REGISTRO_ASIGNATURA)
+                .justificacionPrioridad("Prueba importante para funcionamiento")
+                .canalOrigen(CanalOrigen.CSU)
+                .solicitanteId(solicitante.getId())
+                .build();
+
+        // Crear
+        SolicitudResponseDTO creada = solicitudService.crearSolicitud(request);
+        assertNull(creada.getPrioridad());
+
+        // Clasificar
+        SolicitudResponseDTO clasificada = solicitudService.clasificarSolicitud(
+                creada.getId(),
+                new ClasificarSolicitudDTO(TipoSolicitud.REGISTRO_ASIGNATURA)
+        );
+
+        assertEquals(Prioridad.ALTA, clasificada.getPrioridad());
     }
 }

@@ -50,7 +50,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         Solicitud solicitud = Solicitud.builder()
                 .descripcion(request.getDescripcion())
                 .tipoSolicitud(request.getTipoSolicitud())
-                .prioridad(request.getPrioridad())
+                .prioridad(null)
                 .justificacionPrioridad(request.getJustificacionPrioridad())
                 .canalOrigen(request.getCanalOrigen())
                 .estadoSolicitud(EstadoSolicitud.REGISTRADA)
@@ -115,7 +115,7 @@ public class SolicitudServiceImpl implements SolicitudService {
             throw new EstadoInvalidoException("La solicitud con id " + id + " no puede pasar al estado CLASIFICADA");
         }
 
-        solicitud.setTipoSolicitud(request.getTipoSolicitud());
+        solicitud.setPrioridad(determinarPrioridad(solicitud.getTipoSolicitud()));
         solicitud.setEstadoSolicitud(EstadoSolicitud.CLASIFICADA);
 
         Solicitud solicitudActualizada = solicitudRepository.save(solicitud);
@@ -221,4 +221,14 @@ public class SolicitudServiceImpl implements SolicitudService {
         return solicitudMapper.toDto(solicitudActualizada);
     }
 
+    private Prioridad determinarPrioridad(TipoSolicitud tipoSolicitud) {
+        switch (tipoSolicitud) {
+            case REGISTRO_ASIGNATURA, SOLICITUD_CUPO:
+                return Prioridad.ALTA;
+            case CANCELACION:
+                return Prioridad.BAJA;
+            default:
+                return Prioridad.MEDIA;
+        }
+    }
 }
