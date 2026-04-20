@@ -115,6 +115,10 @@ public class SolicitudServiceImpl implements SolicitudService {
             throw new EstadoInvalidoException("La solicitud con id " + id + " no puede pasar al estado CLASIFICADA");
         }
 
+        if(solicitud.getTipoSolicitud() != request.getTipoSolicitud()) {
+            throw new DatosInvalidosException("El tipo de solicitud enviado " + request.getTipoSolicitud() + " debe ser igual al tipo de la solicitud que se va a clasificar " + solicitud.getTipoSolicitud());
+        }
+
         solicitud.setPrioridad(determinarPrioridad(solicitud.getTipoSolicitud()));
         solicitud.setEstadoSolicitud(EstadoSolicitud.CLASIFICADA);
 

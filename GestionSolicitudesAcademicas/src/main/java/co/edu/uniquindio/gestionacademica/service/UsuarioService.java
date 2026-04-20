@@ -16,5 +16,7 @@ public interface UsuarioService {
 
     UsuarioResponseDTO actualizarUsuario(Long id, UsuarioRequestDTO request);
 
+    UsuarioResponseDTO activarUsuario(Long id);
+
     UsuarioResponseDTO desactivarUsuario(Long id);
 }

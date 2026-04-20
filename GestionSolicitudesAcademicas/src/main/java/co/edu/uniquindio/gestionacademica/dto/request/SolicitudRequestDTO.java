@@ -29,10 +29,10 @@ public class SolicitudRequestDTO {
     private String justificacionPrioridad;
 
     //El canal es obligatorio para saber por dónde se realiza la solicitud
-    @NotBlank(message = "El canal de origen es obligatorio")
+    @NotNull(message = "El canal de origen es obligatorio")
     private CanalOrigen canalOrigen;
 
     //Id del solicitante es obligatorio para saber quién realiza la solicitud
-    @NotBlank(message = "El id del solicitante es obligatorio")
+    @NotNull(message = "El id del solicitante es obligatorio")
     private Long solicitanteId;
 }

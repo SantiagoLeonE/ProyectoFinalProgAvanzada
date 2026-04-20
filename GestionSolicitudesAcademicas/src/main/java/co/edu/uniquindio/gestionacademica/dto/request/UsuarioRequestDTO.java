@@ -3,6 +3,7 @@ package co.edu.uniquindio.gestionacademica.dto.request;
 import co.edu.uniquindio.gestionacademica.domain.enums.Rol;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import lombok.*;
@@ -34,6 +35,6 @@ public class UsuarioRequestDTO {
     private String contrasena;
 
     //El rol de un usuario es obligatorio, ya que define las acciones que se pueden realizar
-    @NotBlank(message = "El rol es obligatorio")
+    @NotNull(message = "El rol es obligatorio")
     private Rol rol;
 }

@@ -43,6 +43,12 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.actualizarUsuario(id, request));
     }
 
+    @PatchMapping("/{id}/activar")
+    public ResponseEntity<UsuarioResponseDTO> activarUsuario(@PathVariable Long id) {
+
+        return ResponseEntity.ok(usuarioService.activarUsuario(id));
+    }
+
     @PatchMapping("/{id}/desactivar")
     public ResponseEntity<UsuarioResponseDTO> desactivarUsuario(@PathVariable Long id) {
 

@@ -81,6 +81,20 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
+    public UsuarioResponseDTO activarUsuario(Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario con id " + id + " no encontrado"));
+
+        if(usuario.isActivo()) {
+            throw new DatosInvalidosException("El usuario con id " + id + " ya se encuentra activado");
+        }
+
+        usuario.setActivo(true);
+        Usuario usuarioActualizado =  usuarioRepository.save(usuario);
+        return usuarioMapper.toDTO(usuarioActualizado);
+    }
+
+    @Override
     public UsuarioResponseDTO desactivarUsuario(Long id) {
 
         Usuario usuario = usuarioRepository.findById(id)
