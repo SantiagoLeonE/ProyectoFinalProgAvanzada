@@ -1,0 +1,29 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-icon">🎓</div>
+      <h1>Gestión de Solicitudes</h1>
+      <p>Universidad del Quindío</p>
+    </div>
+
+    <div class="form-group">
+      <label>Correo electrónico</label>
+      <input type="email" [(ngModel)]="email" placeholder="correo@ejemplo.com"/>
+    </div>
+
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" [(ngModel)]="contrasena" placeholder="••••••••"/>
+    </div>
+
+    <div class="error-msg" *ngIf="error">{{ error }}</div>
+
+    <button class="btn-primary" (click)="login()" [disabled]="cargando">
+      {{ cargando ? 'Iniciando sesión...' : 'Iniciar sesión' }}
+    </button>
+
+    <p class="registro-link">
+      ¿No tienes cuenta? <a routerLink="/registro">Regístrate aquí</a>
+    </p>
+  </div>
+</div>

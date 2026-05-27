@@ -1,0 +1,56 @@
+<div class="page-container">
+  <h2 class="page-title">Nueva Solicitud Académica</h2>
+
+  <div class="card" *ngIf="!solicitudCreada">
+    <div class="form-group">
+      <label>Descripción de la solicitud</label>
+      <textarea [(ngModel)]="descripcion" rows="4"
+                placeholder="Describe detalladamente tu solicitud..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Tipo de solicitud</label>
+      <select [(ngModel)]="tipoSolicitud">
+        <option value="">Selecciona un tipo</option>
+        <option *ngFor="let tipo of tipos" [value]="tipo">
+          {{ tipo.replace('_', ' ') }}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Canal de origen</label>
+      <select [(ngModel)]="canalOrigen">
+        <option value="">Selecciona un canal</option>
+        <option *ngFor="let canal of canales" [value]="canal">{{ canal }}</option>
+      </select>
+    </div>
+
+    <div class="error-msg" *ngIf="error">{{ error }}</div>
+
+    <button class="btn-primary" (click)="crear()" [disabled]="cargando">
+      {{ cargando ? 'Enviando...' : 'Enviar Solicitud' }}
+    </button>
+  </div>
+
+  <!-- Resultado con sugerencia de IA -->
+  <div class="card success-card" *ngIf="solicitudCreada">
+    <div class="success-icon">✅</div>
+    <h3>Solicitud creada exitosamente</h3>
+    <p><strong>ID:</strong> {{ solicitudCreada.id }}</p>
+    <p><strong>Estado:</strong> {{ solicitudCreada.estadoSolicitud }}</p>
+
+    <div class="ia-sugerencia" *ngIf="solicitudCreada.sugerenciaIA?.iaDisponible">
+      <h4>🤖 Sugerencia de la IA</h4>
+      <p><strong>Tipo sugerido:</strong> {{ solicitudCreada.sugerenciaIA.tipoSolicitudSugerido }}</p>
+      <p><strong>Prioridad sugerida:</strong> {{ solicitudCreada.sugerenciaIA.prioridadSugerida }}</p>
+      <p><strong>Justificación:</strong> {{ solicitudCreada.sugerenciaIA.justificacion }}</p>
+    </div>
+
+    <div class="ia-no-disponible" *ngIf="!solicitudCreada.sugerenciaIA?.iaDisponible">
+      <p>ℹ️ {{ solicitudCreada.sugerenciaIA?.justificacion }}</p>
+    </div>
+
+    <button class="btn-secondary" (click)="irAMisSolicitudes()">Ver mis solicitudes</button>
+  </div>
+</div>

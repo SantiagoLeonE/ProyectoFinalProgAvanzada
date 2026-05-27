@@ -1,0 +1,186 @@
+<div class="page-container">
+  <h2 class="page-title">Solicitudes Académicas</h2>
+
+  <!-- Filtros -->
+  <div class="filtros-card">
+    <select [(ngModel)]="filtroEstado" (change)="cargarSolicitudes()">
+      <option value="">Todos los estados</option>
+      <option *ngFor="let e of estados" [value]="e">{{ e }}</option>
+    </select>
+    <select [(ngModel)]="filtroPrioridad" (change)="cargarSolicitudes()">
+      <option value="">Todas las prioridades</option>
+      <option *ngFor="let p of prioridades" [value]="p">{{ p }}</option>
+    </select>
+    <button class="btn-secondary" (click)="filtroEstado=''; filtroPrioridad=''; cargarSolicitudes()">
+      Limpiar filtros
+    </button>
+  </div>
+
+  <div class="loading" *ngIf="cargando">Cargando solicitudes...</div>
+
+  <!-- Tabla de solicitudes -->
+  <div class="table-container" *ngIf="!cargando">
+    <table class="tabla">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Descripción</th>
+        <th>Tipo</th>
+        <th>Estado</th>
+        <th>Prioridad</th>
+        <th>Fecha</th>
+        <th>Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let s of solicitudes">
+
+        <td>{{ s.id }}</td>
+
+        <td class="descripcion-cell">
+          {{ s.descripcion }}
+        </td>
+
+        <td>{{ s.tipoSolicitud?.replace('_', ' ') }}</td>
+
+        <td>
+    <span class="badge"
+          [class]="getEstadoClass(s.estadoSolicitud)">
+      {{ s.estadoSolicitud }}
+    </span>
+        </td>
+
+        <td>
+    <span class="badge"
+          [class]="getPrioridadClass(s.prioridad)">
+      {{ s.prioridad ?? 'Sin asignar' }}
+    </span>
+        </td>
+
+        <td>
+          {{ s.fechaRegistro | date:'dd/MM/yyyy' }}
+        </td>
+
+        <!-- Acciones -->
+        <td>
+          <div class="acciones-tabla">
+
+            <!-- Solo ADMINISTRATIVO y DOCENTE -->
+            <a
+              *ngIf="esAdministrativo || esDocente"
+              [routerLink]="['/solicitudes', s.id, 'gestionar']"
+              class="btn-sm btn-primary">
+              ⚙️ Gestionar
+            </a>
+
+            <!-- Todos los roles -->
+            <button
+              class="btn-sm btn-secondary"
+              (click)="generarResumen(s)">
+              🤖 Resumen IA
+            </button>
+
+            <!-- Todos los roles -->
+            <button
+              class="btn-sm btn-historial"
+              (click)="verHistorial(s)">
+              📜 Historial
+            </button>
+
+          </div>
+        </td>
+
+      </tr>
+      </tbody>
+    </table>
+
+    <div class="no-data" *ngIf="solicitudes.length === 0">
+      No hay solicitudes para mostrar.
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  <div class="paginacion" *ngIf="totalPages > 1">
+    <button [disabled]="paginaActual === 0" (click)="cambiarPagina(paginaActual - 1)">
+      ← Anterior
+    </button>
+    <span>Página {{ paginaActual + 1 }} de {{ totalPages }}</span>
+    <button [disabled]="paginaActual === totalPages - 1"
+            (click)="cambiarPagina(paginaActual + 1)">
+      Siguiente →
+    </button>
+  </div>
+
+  <!-- Modal resumen IA -->
+  <div class="modal-overlay" *ngIf="resumenIA || solicitudSeleccionada">
+    <div class="modal-card">
+      <h3>🤖 Resumen IA — Solicitud #{{ solicitudSeleccionada?.id }}</h3>
+      <div *ngIf="!resumenIA" class="loading">Generando resumen...</div>
+      <div *ngIf="resumenIA">
+        <p class="resumen-texto">{{ resumenIA.resumen }}</p>
+        <p class="ia-estado" *ngIf="!resumenIA.iaDisponible">
+          ⚠️ IA no disponible
+        </p>
+      </div>
+      <button class="btn-secondary" (click)="resumenIA = null; solicitudSeleccionada = null">
+        Cerrar
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal historial manual -->
+  <div class="modal-overlay" *ngIf="solicitudHistorial">
+    <div class="modal-card modal-historial">
+
+      <div class="modal-header">
+        <h3>📜 Historial — Solicitud #{{ solicitudHistorial?.id }}</h3>
+        <button class="btn-cerrar" (click)="cerrarHistorial()">✕</button>
+      </div>
+
+      <!-- Info básica de la solicitud -->
+      <div class="historial-info">
+        <p><strong>Descripción:</strong> {{ solicitudHistorial?.descripcion }}</p>
+        <p><strong>Estado actual:</strong>
+          <span class="badge" [class]="getEstadoClass(solicitudHistorial?.estadoSolicitud)">
+                    {{ solicitudHistorial?.estadoSolicitud }}
+                </span>
+        </p>
+        <p *ngIf="solicitudHistorial?.observacionCierre">
+          <strong>Observación de cierre:</strong>
+          {{ solicitudHistorial?.observacionCierre }}
+        </p>
+      </div>
+
+      <div *ngIf="cargandoHistorial" class="loading">
+        Cargando historial...
+      </div>
+
+      <!-- Lista de acciones del historial -->
+      <div *ngIf="!cargandoHistorial">
+        <div class="historial-lista" *ngIf="historialModal.length > 0">
+          <div class="historial-item"
+               *ngFor="let h of historialModal">
+            <div class="historial-icono">📌</div>
+            <div class="historial-detalle">
+                        <span class="historial-accion">
+                            {{ h.accionRealizada }}
+                        </span>
+              <span class="historial-fecha">
+                            {{ h.fechaAccion | date:'dd/MM/yyyy HH:mm' }}
+                        </span>
+            </div>
+          </div>
+        </div>
+        <p class="no-data" *ngIf="historialModal.length === 0">
+          Sin historial registrado.
+        </p>
+      </div>
+
+      <button class="btn-secondary"
+              style="margin-top: 16px; width: 100%"
+              (click)="cerrarHistorial()">
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>

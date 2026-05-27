@@ -1,0 +1,158 @@
+<div class="page-container">
+  <div class="page-header">
+    <button class="btn-secondary" (click)="volver()">← Volver</button>
+    <h2 class="page-title">Gestionar Solicitud #{{ solicitud?.id }}</h2>
+  </div>
+
+  <div class="loading" *ngIf="cargando">Cargando...</div>
+
+  <div *ngIf="solicitud && !cargando">
+
+    <!-- Info de la solicitud -->
+    <div class="card info-card">
+      <h3>Información de la solicitud</h3>
+      <div class="info-grid">
+        <div><span class="label">Descripción:</span> {{ solicitud.descripcion }}</div>
+        <div><span class="label">Estado:</span>
+          <span class="badge" [class]="getEstadoClass(solicitud.estadoSolicitud)">
+            {{ solicitud.estadoSolicitud }}
+          </span>
+        </div>
+        <div><span class="label">Tipo:</span> {{ solicitud.tipoSolicitud ?? 'Sin clasificar' }}</div>
+        <div><span class="label">Prioridad:</span>
+          <span class="badge" [class]="getPrioridadClass(solicitud.prioridad)">
+            {{ solicitud.prioridad ?? 'Sin asignar' }}
+          </span>
+        </div>
+        <div><span class="label">Canal:</span> {{ solicitud.canalOrigen }}</div>
+        <div><span class="label">Responsable ID:</span>
+          {{ solicitud.responsableId ?? 'Sin asignar' }}
+        </div>
+      </div>
+    </div>
+
+    <div class="error-msg" *ngIf="error">{{ error }}</div>
+    <div class="exito-msg" *ngIf="exito">✅ {{ exito }}</div>
+
+    <!-- Acciones según estado -->
+    <div class="acciones-grid">
+
+      <!-- Clasificar -->
+      <div class="card accion-card"
+           *ngIf="puedeClasificar && esAdministrativo">
+        <h4>📋 Clasificar solicitud</h4>
+        <!-- Sugerencia IA -->
+        <div class="card ia-card"
+             *ngIf="solicitud?.sugerenciaIA?.iaDisponible">
+
+          <h4>🤖 Sugerencia de IA</h4>
+
+          <p>
+            <strong>Tipo sugerido:</strong>
+            {{ solicitud.sugerenciaIA.tipoSolicitudSugerido }}
+          </p>
+
+          <p>
+            <strong>Prioridad sugerida:</strong>
+            {{ solicitud.sugerenciaIA.prioridadSugerida }}
+          </p>
+
+          <p>
+            <strong>Justificación:</strong>
+            {{ solicitud.sugerenciaIA.justificacion }}
+          </p>
+
+          <button class="btn-secondary"
+                  (click)="usarSugerenciaIA()">
+            Usar sugerencia
+          </button>
+        </div>
+        <div class="form-group">
+          <label>Tipo de solicitud</label>
+          <select [(ngModel)]="tipoSolicitud">
+            <option *ngFor="let t of tipos" [value]="t">{{ t.replace('_',' ') }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Impacto académico</label>
+          <input type="text" [(ngModel)]="impactoAcademico"
+                 placeholder="Ej: Necesario para graduación"/>
+        </div>
+        <div class="form-group">
+          <label>Prioridad (opcional — si no selecciona se calcula automáticamente)</label>
+          <select [(ngModel)]="prioridadManual">
+            <option value="">Calcular automáticamente</option>
+            <option *ngFor="let p of prioridades" [value]="p">{{ p }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fecha límite</label>
+          <input type="date" [(ngModel)]="fechaLimite"/>
+        </div>
+        <button class="btn-primary" (click)="clasificar()">Clasificar</button>
+      </div>
+
+      <!-- Asignar responsable -->
+      <div class="card accion-card"
+           *ngIf="puedeAsignar && esAdministrativo">
+        <h4>👤 Asignar responsable</h4>
+        <div class="form-group">
+          <label>Responsable</label>
+          <select [(ngModel)]="responsableId">
+            <option [value]="null">Seleccione un responsable</option>
+            <option *ngFor="let r of responsables" [value]="r.id">
+              {{ r.nombre }} ({{ r.rol }})
+            </option>
+          </select>
+        </div>
+        <button class="btn-primary" (click)="asignarResponsable()">Asignar</button>
+      </div>
+
+      <!-- Atender -->
+      <div class="card accion-card"
+           *ngIf="puedeAtender && esDocente && esResponsableAsignado">
+        <h4>⚙️ Poner en atención</h4>
+        <p>La solicitud pasará al estado EN_ATENCION.</p>
+        <button class="btn-primary" (click)="atender()">Atender</button>
+      </div>
+
+      <!-- Resolver -->
+      <div class="card accion-card"
+           *ngIf="puedeResolver && esDocente && esResponsableAsignado">
+        <h4>✔️ Marcar como atendida</h4>
+        <p>La solicitud pasará al estado ATENDIDA.</p>
+        <button class="btn-primary" (click)="resolver()">Resolver</button>
+      </div>
+
+      <!-- Cerrar -->
+      <div class="card accion-card"
+           *ngIf="puedeCerrar && esDocente && esResponsableAsignado">
+        <h4>🔒 Cerrar solicitud</h4>
+        <div class="form-group">
+          <label>Observación de cierre</label>
+          <textarea [(ngModel)]="observacionCierre" rows="3"
+                    placeholder="Describa cómo se resolvió la solicitud..."></textarea>
+        </div>
+        <button class="btn-primary" (click)="cerrar()">Cerrar solicitud</button>
+      </div>
+
+      <!-- Cerrada -->
+      <div class="card accion-card cerrada-card" *ngIf="estaCerrada">
+        <h4>🔒 Solicitud cerrada</h4>
+        <p><strong>Observación:</strong> {{ solicitud.observacionCierre }}</p>
+      </div>
+    </div>
+
+    <!-- Historial -->
+    <div class="card">
+      <h3>📜 Historial de la solicitud</h3>
+      <div class="historial-lista" *ngIf="historial.length > 0">
+        <div class="historial-item" *ngFor="let h of historial">
+          <span class="historial-fecha">{{ h.fechaAccion | date:'dd/MM/yyyy HH:mm' }}</span>
+          <span class="historial-accion">{{ h.accionRealizada }}</span>
+        </div>
+      </div>
+      <p class="no-data" *ngIf="historial.length === 0">Sin historial registrado.</p>
+    </div>
+  </div>
+</div>

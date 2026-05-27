@@ -1,0 +1,65 @@
+<div class="page-container">
+  <h2 class="page-title">Gestión de Usuarios</h2>
+
+  <div class="filtros-card">
+    <select [(ngModel)]="filtroRol" (change)="cargarUsuarios()">
+      <option value="">Todos los roles</option>
+      <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+    </select>
+    <button class="btn-secondary" (click)="filtroRol = ''; cargarUsuarios()">
+      Limpiar
+    </button>
+  </div>
+
+  <div class="error-msg" *ngIf="error">{{ error }}</div>
+  <div class="loading" *ngIf="cargando">Cargando usuarios...</div>
+
+  <div class="table-container" *ngIf="!cargando">
+    <table class="tabla">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Identificación</th>
+        <th>Rol</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let u of usuarios">
+        <td>{{ u.id }}</td>
+        <td>{{ u.nombre }}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.identificacion }}</td>
+        <td><span class="badge badge-rol">{{ u.rol }}</span></td>
+        <td>
+            <span class="badge" [class]="u.activo ? 'badge-activo' : 'badge-inactivo'">
+              {{ u.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+        </td>
+        <td>
+          <button class="btn-sm btn-danger"
+                  *ngIf="u.activo && u.rol !== 'ADMINISTRATIVO'"
+                  (click)="desactivar(u.id)">
+            Desactivar
+          </button>
+          <button class="btn-sm btn-success"
+                  *ngIf="!u.activo"
+                  (click)="activar(u.id)">
+            Activar
+          </button>
+          <span class="badge badge-rol"
+                *ngIf="u.rol === 'ADMINISTRATIVO'">
+            Protegido
+          </span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    <div class="no-data" *ngIf="usuarios.length === 0">
+      No hay usuarios para mostrar.
+    </div>
+  </div>
+</div>
