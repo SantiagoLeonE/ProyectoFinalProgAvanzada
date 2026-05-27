@@ -23,5 +23,5 @@ public class SolicitudResponseDTO {
     private CanalOrigen canalOrigen;
     private Long solicitanteId;
     private Long responsableId;
-
+    private IAClasificacionResponseDTO sugerenciaIA;
 }

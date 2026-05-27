@@ -6,6 +6,7 @@ import co.edu.uniquindio.gestionacademica.domain.model.Usuario;
 import co.edu.uniquindio.gestionacademica.dto.*;
 import co.edu.uniquindio.gestionacademica.dto.request.SolicitudRequestDTO;
 
+import co.edu.uniquindio.gestionacademica.dto.response.IAClasificacionResponseDTO;
 import co.edu.uniquindio.gestionacademica.dto.response.SolicitudResponseDTO;
 import co.edu.uniquindio.gestionacademica.exception.*;
 import co.edu.uniquindio.gestionacademica.mapper.SolicitudMapper;
@@ -31,6 +32,7 @@ public class SolicitudServiceImpl implements SolicitudService {
     private final UsuarioRepository usuarioRepository;
     private final SolicitudMapper solicitudMapper;
     private final HistorialSolicitudService historialSolicitudService;
+    private final IAService iaService;
 
 
     @Override
@@ -168,6 +170,10 @@ public class SolicitudServiceImpl implements SolicitudService {
         SolicitudResponseDTO response = solicitudMapper.toDto(solicitud);
 
         //Validación IA
+        if (usuarioActual.getRol() == Rol.ADMINISTRATIVO) {
+            IAClasificacionResponseDTO sugerencia = iaService.sugerirClasificacion(solicitud.getDescripcion());
+            response.setSugerenciaIA(sugerencia);
+        }
 
         return response;
     }

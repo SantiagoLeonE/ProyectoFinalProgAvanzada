@@ -16,8 +16,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -110,6 +112,7 @@ class GestionAcademicaApplicationTests {
      * Prueba que una solicitud ya cerrada no puede modificarse de ninguna manera
      */
     @Test
+    @WithMockUser(username = "docente@test.com")
     void cerrarSolicitud() {
         SolicitudRequestDTO request = SolicitudRequestDTO.builder()
                 .descripcion("Registrar la asignatura de Bases de Datos")
@@ -121,7 +124,15 @@ class GestionAcademicaApplicationTests {
 
         SolicitudResponseDTO response = solicitudService.crearSolicitud(request);
 
-        solicitudService.clasificarSolicitud(response.getId(), new ClasificarSolicitudDTO(TipoSolicitud.REGISTRO_ASIGNATURA));
+        solicitudService.clasificarSolicitud(
+                response.getId(),
+                ClasificarSolicitudDTO.builder()
+                        .tipoSolicitud(TipoSolicitud.REGISTRO_ASIGNATURA)
+                        .impactoAcademico("")
+                        .fechaLimite(LocalDate.now().plusDays(1))
+                        .prioridadManual(null)
+                        .build()
+        );
         solicitudService.asignarResponsable(response.getId(), new AsignarResponsableDTO(responsable.getId()));
         solicitudService.atenderSolicitud((response.getId()));
         solicitudService.resolverSolicitud(response.getId());
@@ -155,6 +166,7 @@ class GestionAcademicaApplicationTests {
      * Prueba para comprobar el funcionamiento correcto de la asignación de la prioridad por el tipo
      */
     @Test
+    @WithMockUser(username = "docente@test.com")
     void clasificarSolicitud() {
         SolicitudRequestDTO request = SolicitudRequestDTO.builder()
                 .descripcion("Prueba válida de longitud")
@@ -169,9 +181,13 @@ class GestionAcademicaApplicationTests {
         assertNull(creada.getPrioridad());
 
         // Clasificar
-        SolicitudResponseDTO clasificada = solicitudService.clasificarSolicitud(
-                creada.getId(),
-                new ClasificarSolicitudDTO(TipoSolicitud.REGISTRO_ASIGNATURA)
+        SolicitudResponseDTO clasificada = solicitudService.clasificarSolicitud(creada.getId(),
+                ClasificarSolicitudDTO.builder()
+                        .tipoSolicitud(TipoSolicitud.REGISTRO_ASIGNATURA)
+                        .impactoAcademico("")
+                        .fechaLimite(LocalDate.now().plusDays(1))
+                        .prioridadManual(null)
+                        .build()
         );
 
         assertEquals(Prioridad.ALTA, clasificada.getPrioridad());

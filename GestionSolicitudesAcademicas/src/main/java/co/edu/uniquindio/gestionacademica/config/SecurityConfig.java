@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -23,8 +24,9 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 //Desactivar CSRF porque usamos tokens JWT, no sesiones
                 .csrf(csrf -> csrf.disable())
                 //No usar sesiones, cada petición se autentica con el token
@@ -46,6 +48,11 @@ public class SecurityConfig {
                         .hasAnyRole("DOCENTE", "ADMINISTRATIVO")
                         .requestMatchers(HttpMethod.PATCH, "/solicitudes/*/cerrar")
                         .hasAnyRole("DOCENTE", "ADMINISTRATIVO")
+                        //Solo DOCENTE y ADMINISTRATIVO pueden pedir resumen
+                        .requestMatchers(HttpMethod.GET, "/ia/resumir/**")
+                        .hasAnyRole("DOCENTE", "ADMINISTRATIVO")
+                        //Cualquier usuario autenticado puede pedir sugerencia de clasificación
+                        .requestMatchers(HttpMethod.POST, "/ia/sugerir-clasificacion").authenticated()
                         //Cualquier usuario autenticado puede crear y consultar solicitudes
                         .anyRequest().authenticated())
 
