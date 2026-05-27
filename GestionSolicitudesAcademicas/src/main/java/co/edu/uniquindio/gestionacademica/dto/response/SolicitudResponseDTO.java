@@ -1,12 +1,8 @@
 package co.edu.uniquindio.gestionacademica.dto.response;
 
-import co.edu.uniquindio.gestionacademica.domain.enums.CanalOrigen;
-import co.edu.uniquindio.gestionacademica.domain.enums.EstadoSolicitud;
-import co.edu.uniquindio.gestionacademica.domain.enums.Prioridad;
-import co.edu.uniquindio.gestionacademica.domain.enums.TipoSolicitud;
+import co.edu.uniquindio.gestionacademica.domain.enums.*;
 import lombok.*;
 
-import java.awt.print.Pageable;
 import java.time.LocalDateTime;
 
 @Getter

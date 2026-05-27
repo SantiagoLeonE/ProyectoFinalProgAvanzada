@@ -1,7 +1,5 @@
 package co.edu.uniquindio.gestionacademica.domain.model;
 
-import co.edu.uniquindio.gestionacademica.domain.model.Solicitud;
-import co.edu.uniquindio.gestionacademica.domain.model.Usuario;
 import jakarta.persistence.*;
 import lombok.*;
 

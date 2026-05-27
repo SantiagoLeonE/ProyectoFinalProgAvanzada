@@ -1,6 +1,5 @@
 package co.edu.uniquindio.gestionacademica.controller;
 
-
 import co.edu.uniquindio.gestionacademica.dto.response.HistorialSolicitudResponseDTO;
 import co.edu.uniquindio.gestionacademica.service.HistorialSolicitudService;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,6 @@ public class HistorialSolicitudController {
 
     @GetMapping("/{id}/historial")
     public ResponseEntity<List<HistorialSolicitudResponseDTO>> obtenerHistorialSolicitud(@PathVariable Long id) {
-
         return ResponseEntity.ok(historialSolicitudService.obtenerHistorialPorSolicitud(id));
     }
 }

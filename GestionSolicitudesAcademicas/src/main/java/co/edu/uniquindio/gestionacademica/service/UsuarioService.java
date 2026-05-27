@@ -8,15 +8,11 @@ import java.util.List;
 
 public interface UsuarioService {
 
-    UsuarioResponseDTO crearUsuario(UsuarioRequestDTO request);
-
     List<UsuarioResponseDTO> listarUsuarios(Rol rol, Boolean activo);
 
+    UsuarioResponseDTO crearUsuario(UsuarioRequestDTO request);
     UsuarioResponseDTO obtenerUsuarioPorId(Long id);
-
     UsuarioResponseDTO actualizarUsuario(Long id, UsuarioRequestDTO request);
-
     UsuarioResponseDTO activarUsuario(Long id);
-
     UsuarioResponseDTO desactivarUsuario(Long id);
 }

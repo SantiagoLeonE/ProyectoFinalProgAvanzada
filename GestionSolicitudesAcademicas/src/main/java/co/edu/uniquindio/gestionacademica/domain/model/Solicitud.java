@@ -28,7 +28,7 @@ public class Solicitud {
     @Column(nullable = false)
     private LocalDateTime fechaRegistro;
 
-    @Column(nullable = false, length = 1000)
+    @Column(length = 1000)
     private String justificacionPrioridad;
 
     @Column(length = 1000)

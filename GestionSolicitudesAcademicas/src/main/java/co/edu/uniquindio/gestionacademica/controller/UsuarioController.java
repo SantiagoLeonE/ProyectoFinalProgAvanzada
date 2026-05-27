@@ -21,37 +21,31 @@ public class UsuarioController {
 
     @PostMapping
     public ResponseEntity<UsuarioResponseDTO> crearUsuario(@Valid @RequestBody UsuarioRequestDTO request) {
-
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.crearUsuario(request));
     }
 
     @GetMapping
     public ResponseEntity<List<UsuarioResponseDTO>> listarUsuarios(@RequestParam (required = false) Rol rol, @RequestParam (required = false) Boolean activo) {
-
         return ResponseEntity.ok(usuarioService.listarUsuarios(rol, activo));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioResponseDTO> obtenerUsuarioPorId(@PathVariable Long id) {
-
         return ResponseEntity.ok(usuarioService.obtenerUsuarioPorId(id));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<UsuarioResponseDTO> actualizarUsuario(@PathVariable Long id, @Valid @RequestBody UsuarioRequestDTO request) {
-
         return ResponseEntity.ok(usuarioService.actualizarUsuario(id, request));
     }
 
     @PatchMapping("/{id}/activar")
     public ResponseEntity<UsuarioResponseDTO> activarUsuario(@PathVariable Long id) {
-
         return ResponseEntity.ok(usuarioService.activarUsuario(id));
     }
 
     @PatchMapping("/{id}/desactivar")
     public ResponseEntity<UsuarioResponseDTO> desactivarUsuario(@PathVariable Long id) {
-
         return ResponseEntity.ok(usuarioService.desactivarUsuario(id));
     }
 }

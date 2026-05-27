@@ -1,8 +1,6 @@
 package co.edu.uniquindio.gestionacademica.service.impl;
 
-import co.edu.uniquindio.gestionacademica.domain.model.HistorialSolicitud;
-import co.edu.uniquindio.gestionacademica.domain.model.Solicitud;
-import co.edu.uniquindio.gestionacademica.domain.model.Usuario;
+import co.edu.uniquindio.gestionacademica.domain.model.*;
 import co.edu.uniquindio.gestionacademica.dto.response.HistorialSolicitudResponseDTO;
 import co.edu.uniquindio.gestionacademica.exception.RecursoNoEncontradoException;
 import co.edu.uniquindio.gestionacademica.mapper.HistorialSolicitudMapper;
@@ -35,9 +33,7 @@ public class HistorialSolicitudServiceImpl implements HistorialSolicitudService 
     }
 
 
-    /*
-     *Método para integrar historial con solicitud
-     */
+    //Método para integrar historial con solicitud
     @Override
     public void registrarHistorial(Solicitud solicitud, String accionRealizada, Usuario responsable) {
 
