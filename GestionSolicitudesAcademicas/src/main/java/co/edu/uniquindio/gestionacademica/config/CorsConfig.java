@@ -21,7 +21,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         //Frontend permitido
-        config.setAllowedOriginPatterns(List.of(allowedOrigins));
+        config.setAllowedOriginPatterns(List.of(allowedOrigins, "https://proyectofinalprogavanzadafrontend.onrender.com"));
 
         //Métodos HTTP permitidos
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
