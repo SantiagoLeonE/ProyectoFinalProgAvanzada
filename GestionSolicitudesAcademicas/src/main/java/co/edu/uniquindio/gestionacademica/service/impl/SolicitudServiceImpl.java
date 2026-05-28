@@ -5,7 +5,6 @@ import co.edu.uniquindio.gestionacademica.domain.model.Solicitud;
 import co.edu.uniquindio.gestionacademica.domain.model.Usuario;
 import co.edu.uniquindio.gestionacademica.dto.*;
 import co.edu.uniquindio.gestionacademica.dto.request.SolicitudRequestDTO;
-
 import co.edu.uniquindio.gestionacademica.dto.response.IAClasificacionResponseDTO;
 import co.edu.uniquindio.gestionacademica.dto.response.SolicitudResponseDTO;
 import co.edu.uniquindio.gestionacademica.exception.*;
@@ -32,8 +31,8 @@ public class SolicitudServiceImpl implements SolicitudService {
     private final UsuarioRepository usuarioRepository;
     private final SolicitudMapper solicitudMapper;
     private final HistorialSolicitudService historialSolicitudService;
-    private final IAService iaService;
 
+    private final IAService iaService;
 
     @Override
     @Transactional

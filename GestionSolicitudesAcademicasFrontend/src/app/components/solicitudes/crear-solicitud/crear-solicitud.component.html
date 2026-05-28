@@ -40,16 +40,7 @@
     <p><strong>ID:</strong> {{ solicitudCreada.id }}</p>
     <p><strong>Estado:</strong> {{ solicitudCreada.estadoSolicitud }}</p>
 
-    <div class="ia-sugerencia" *ngIf="solicitudCreada.sugerenciaIA?.iaDisponible">
-      <h4>🤖 Sugerencia de la IA</h4>
-      <p><strong>Tipo sugerido:</strong> {{ solicitudCreada.sugerenciaIA.tipoSolicitudSugerido }}</p>
-      <p><strong>Prioridad sugerida:</strong> {{ solicitudCreada.sugerenciaIA.prioridadSugerida }}</p>
-      <p><strong>Justificación:</strong> {{ solicitudCreada.sugerenciaIA.justificacion }}</p>
-    </div>
 
-    <div class="ia-no-disponible" *ngIf="!solicitudCreada.sugerenciaIA?.iaDisponible">
-      <p>ℹ️ {{ solicitudCreada.sugerenciaIA?.justificacion }}</p>
-    </div>
 
     <button class="btn-secondary" (click)="irAMisSolicitudes()">Ver mis solicitudes</button>
   </div>

@@ -48,9 +48,8 @@ public class SecurityConfig {
                         .hasAnyRole("DOCENTE", "ADMINISTRATIVO")
                         .requestMatchers(HttpMethod.PATCH, "/solicitudes/*/cerrar")
                         .hasAnyRole("DOCENTE", "ADMINISTRATIVO")
-                        //Solo DOCENTE y ADMINISTRATIVO pueden pedir resumen
-                        .requestMatchers(HttpMethod.GET, "/ia/resumir/**")
-                        .hasAnyRole("DOCENTE", "ADMINISTRATIVO")
+                        //Tanto un ESTUDIANTE, como DOCENTE y ADMINISTRATIVO pueden pedir resumen con IA
+                        .requestMatchers(HttpMethod.GET, "/ia/resumir/**").authenticated()
                         //Cualquier usuario autenticado puede pedir sugerencia de clasificación
                         .requestMatchers(HttpMethod.POST, "/ia/sugerir-clasificacion").authenticated()
                         //Cualquier usuario autenticado puede crear y consultar solicitudes

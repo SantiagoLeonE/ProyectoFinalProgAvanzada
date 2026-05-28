@@ -13,12 +13,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "app.ia.habilitada", havingValue = "true")
 public class IAServiceImpl implements IAService {
 
     private final HistorialSolicitudRepository historialRepository;
